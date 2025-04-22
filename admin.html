@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة التحكم - متجر البراء</title>
+  <style>
+    body { font-family: 'Arial'; background: #f9f9f9; margin: 0; padding: 0; direction: rtl; }
+    header { background: #222; color: white; text-align: center; padding: 15px; font-size: 20px; }
+    .container { max-width: 700px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
+    input, button, label { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
+    button { background: #25d366; color: white; border: none; cursor: pointer; }
+    .product { border: 1px solid #ddd; padding: 10px; border-radius: 8px; margin-bottom: 10px; background: #fefefe; }
+    .product img { width: 100px; border-radius: 5px; display: block; margin-bottom: 10px; }
+    .actions { display: flex; gap: 10px; }
+    .actions button { flex: 1; }
+    .edit { background: #007bff !important; }
+    .delete { background: #dc3545 !important; }
+  </style>
+</head>
+<body>
+<header>لوحة التحكم - متجر البراء</header>
+<div class="container" id="loginBox">
+  <h3>تسجيل الدخول</h3>
+  <input type="text" id="loginCode" placeholder="الرقم السري">
+  <input type="password" id="loginPass" placeholder="كلمة المرور">
+  <button onclick="handleLogin()">دخول</button>
+</div>
+
+<div class="container" id="adminPanel" style="display:none;">
+  <h3>إضافة منتج جديد</h3>
+  <input type="text" id="productName" placeholder="اسم المنتج">
+  <input type="number" id="productPrice" placeholder="السعر بالأوقية الجديدة">
+  <input type="file" id="productImage" accept="image/*">
+  <button onclick="addProduct()">إضافة</button>
+
+  <hr>
+  <h3>المنتجات الحالية</h3>
+  <div id="productList"></div>
+</div>
+
+<script>
+const CODE = "31484257";
+const PASS = "1234azer@#$";
+let products = JSON.parse(localStorage.getItem("products")) || [];
+
+function handleLogin() {
+  const code = document.getElementById("loginCode").value;
+  const pass = document.getElementById("loginPass").value;
+  if (code === CODE && pass === PASS) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    showProducts();
+  } else {
+    alert("الرقم أو كلمة المرور غير صحيحة");
+  }
+}
+
+function addProduct() {
+  const name = document.getElementById("productName").value;
+  const price = document.getElementById("productPrice").value;
+  const file = document.getElementById("productImage").files[0];
+  if (!name || !price || !file) return alert("يرجى تعبئة كل الحقول");
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    products.push({ name, price, image: e.target.result });
+    localStorage.setItem("products", JSON.stringify(products));
+    resetForm();
+    showProducts();
+  };
+  reader.readAsDataURL(file);
+}
+
+function showProducts() {
+  const list = document.getElementById("productList");
+  list.innerHTML = "";
+  products.forEach((p, i) => {
+    list.innerHTML += `
+      <div class="product">
+        <img src="${p.image}">
+        <strong>${p.name}</strong><br>
+        <span>السعر: ${p.price} أوقية</span>
+        <div class="actions">
+          <button class="edit" onclick="editProduct(${i})">تعديل</button>
+          <button class="delete" onclick="deleteProduct(${i})">حذف</button>
+        </div>
+      </div>`;
+  });
+}
+
+function resetForm() {
+  document.getElementById("productName").value = "";
+  document.getElementById("productPrice").value = "";
+  document.getElementById("productImage").value = "";
+}
+
+function deleteProduct(i) {
+  if (confirm("هل تريد حذف هذا المنتج؟")) {
+    products.splice(i, 1);
+    localStorage.setItem("products", JSON.stringify(products));
+    showProducts();
+  }
+}
+
+function editProduct(i) {
+  const newName = prompt("الاسم الجديد:", products[i].name);
+  const newPrice = prompt("السعر الجديد:", products[i].price);
+  if (newName && newPrice) {
+    products[i].name = newName;
+    products[i].price = newPrice;
+    localStorage.setItem("products", JSON.stringify(products));
+    showProducts();
+  }
+}
+</script>
+</body>
+</html>
